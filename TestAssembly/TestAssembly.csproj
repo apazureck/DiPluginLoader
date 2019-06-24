@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\TestModuleLoader\bin\Debug\netcoreapp2.2\TestAssemblies\TestAssembly1</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\TestModuleLoader\bin\Release\netcoreapp2.2\TestAssemblies\TestAssembly1</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestInterfaces\TestInterfaces.csproj" />
+  </ItemGroup>
+
+</Project>
