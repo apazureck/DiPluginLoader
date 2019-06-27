@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 using Xunit;
 
 namespace TestModuleLoader
@@ -11,6 +12,7 @@ namespace TestModuleLoader
         {
             
         }
+
         [Fact]
         public void TestLoading()
         {
@@ -21,6 +23,15 @@ namespace TestModuleLoader
             serviceCollection.AddTransient(p => p.GetService(types[0]) as TestInterfaces.TestInterface);
             var prov = serviceCollection.BuildServiceProvider();
             var instances = prov.GetService<TestInterfaces.TestInterface>();
+        }
+
+        [Fact]
+        public void TestLoadingMultiple()
+        {
+            IServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.AddTransientPlugins<TestInterfaces.TestInterface>("TestAssemblies/**/*.dll");
+            System.Collections.Generic.IEnumerable<TestInterfaces.TestInterface> services = serviceCollection.BuildServiceProvider().GetServices<TestInterfaces.TestInterface>();
+            Assert.Equal(2, services.Count());
         }
     }
 }

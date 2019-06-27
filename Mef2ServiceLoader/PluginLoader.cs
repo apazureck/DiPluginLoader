@@ -15,14 +15,25 @@ namespace Mef2ServiceLoader
         List<CompositionHost> containers = new List<CompositionHost>();
         List<AssemblyEntry> reflectionOnlyAssemblies = new List<AssemblyEntry>();
 
+        public PluginLoader(string pattern) : this(new string[] { pattern })
+        {
+
+        }
+
         /// <summary>
         /// Creates a new plugin loader
         /// </summary>
         /// <param name="root">root folder, default is relative to executing assemlby</param>
-        /// <param name="pattern"></param>
-        public PluginLoader(string pattern = null)
+        /// <param name="patterns"></param>
+        public PluginLoader(IEnumerable<string> patterns = null)
         {
-            IEnumerable<string> files = Glob.Files(".", pattern ?? "**/*.dll");
+            var files = new List<string>();
+            if (patterns == null)
+                files.AddRange(Glob.Files(".", "**/*.dll"));
+            else
+                foreach (var pattern in patterns)
+                    files.AddRange(Glob.Files(".", pattern));
+
             foreach (var file in files)
             {
                 try
@@ -32,7 +43,7 @@ namespace Mef2ServiceLoader
                     builder.AddReferenceOnlyAssemblyByType<object>(); // adds the corlib
                     reflectionOnlyAssemblies.Add(new AssemblyEntry(builder, file));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     
                 }
