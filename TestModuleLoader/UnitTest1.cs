@@ -31,7 +31,7 @@ namespace TestModuleLoader
             IServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddTransientPlugins<TestInterfaces.ITestInterface>("TestAssemblies/**/*.dll");
             System.Collections.Generic.IEnumerable<TestInterfaces.ITestInterface> services = serviceCollection.BuildServiceProvider().GetServices<TestInterfaces.ITestInterface>();
-            Assert.Equal(2, services.Count());
+            Assert.Equal(3, services.Count());
         }
     }
 }
