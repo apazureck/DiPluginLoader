@@ -1,0 +1,6 @@
+[submodule "FasterReflection"]
+	path = FasterReflection
+	url = https://github.com/apazureck/Rocket.Chat.Net.git
+[submodule "FR"]
+	path = FR
+	url = https://github.com/apazureck/FasterReflection.git

@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Composition.Hosting;
 using System.Linq;
+using System.Reflection;
 
 namespace Mef2ServiceLoader
 {
     public class PluginLoader
     {
         List<CompositionHost> containers = new List<CompositionHost>();
-        List<AssemblyEntry> reflectionOnlyAssemblies = new List<AssemblyEntry>();
+        private ReflectionMetadataResult metaData;
 
         public PluginLoader(string pattern) : this(new string[] { pattern })
         {
@@ -31,50 +32,47 @@ namespace Mef2ServiceLoader
                 foreach (var pattern in patterns)
                     files.AddRange(Glob.Files(".", pattern));
 
+            var builder = new ReflectionMetadataBuilder();
+
             foreach (var file in files)
             {
                 try
                 {
-                    var builder = new ReflectionMetadataBuilder();
                     builder.AddAssembly(file);
-                    builder.AddReferenceOnlyAssemblyByType<object>(); // adds the corlib
-                    reflectionOnlyAssemblies.Add(new AssemblyEntry(builder, file));
                 }
                 catch (Exception)
                 {
-                    
+
                 }
             }
+
+            builder.AddReferenceOnlyAssemblyByType<object>(); // adds the corlib
+            metaData = builder.Build();
         }
 
         public List<Type> GetExports<T>() where T : class
         {
             IEnumerable<TypeDefinition> foundTypes;
-            foreach(AssemblyEntry a in reflectionOnlyAssemblies)
-            {
-                a.AddAssemblyByType<T>();
-            }
+
             if (typeof(T).IsInterface)
             {
-                foundTypes = reflectionOnlyAssemblies.SelectMany(x =>
-                {
-                    return x.ReflectionOnlyAssembly.TypeDefinitions.Where(t =>
+                foundTypes = metaData.TypeDefinitions.Where(t =>
                     {
                         return t.AllInterfaces.Any(i =>
                         {
                             return i.FullName == typeof(T).FullName;
                         });
                     });
-                });
             }
             else
-                foundTypes = reflectionOnlyAssemblies.SelectMany(x => x.ReflectionOnlyAssembly.TypeDefinitions.Where(t => t.FullName == typeof(T).FullName || t.HasBaseType<T>()));
+                foundTypes = metaData.TypeDefinitions.Where(t => t.FullName == typeof(T).FullName || t.HasBaseType<T>());
             var ret = new List<Type>();
 
-            foreach(var foundType in foundTypes)
+            foreach (var foundType in foundTypes)
             {
-                var fassembly = reflectionOnlyAssemblies.First(x => x.AssemblyName == foundType.AssemblyName);
-                ret.Add(fassembly.Assembly.GetType(foundType.FullName));
+                IEnumerable<AssemblyDefinition> assembly = metaData.AssemblyDefinitions.Where(x => x.Name == foundType.AssemblyName);
+                string location = assembly.First().Location;
+                ret.Add(Assembly.LoadFrom(location).GetType(foundType.FullName));
             }
             return ret;
         }
