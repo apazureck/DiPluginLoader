@@ -18,19 +18,19 @@ namespace TestModuleLoader
         {
             IServiceCollection serviceCollection = new ServiceCollection();
             var loadPlugins = new Mef2ServiceLoader.PluginLoader("TestAssemblies/**/*.dll");
-            var types = loadPlugins.GetExports<TestInterfaces.TestInterface>();
+            var types = loadPlugins.GetExports<TestInterfaces.ITestInterface>();
             serviceCollection.AddTransient(types[0]);
-            serviceCollection.AddTransient(p => p.GetService(types[0]) as TestInterfaces.TestInterface);
+            serviceCollection.AddTransient(p => p.GetService(types[0]) as TestInterfaces.ITestInterface);
             var prov = serviceCollection.BuildServiceProvider();
-            var instances = prov.GetService<TestInterfaces.TestInterface>();
+            var instances = prov.GetService<TestInterfaces.ITestInterface>();
         }
 
         [Fact]
         public void TestLoadingMultiple()
         {
             IServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddTransientPlugins<TestInterfaces.TestInterface>("TestAssemblies/**/*.dll");
-            System.Collections.Generic.IEnumerable<TestInterfaces.TestInterface> services = serviceCollection.BuildServiceProvider().GetServices<TestInterfaces.TestInterface>();
+            serviceCollection.AddTransientPlugins<TestInterfaces.ITestInterface>("TestAssemblies/**/*.dll");
+            System.Collections.Generic.IEnumerable<TestInterfaces.ITestInterface> services = serviceCollection.BuildServiceProvider().GetServices<TestInterfaces.ITestInterface>();
             Assert.Equal(2, services.Count());
         }
     }

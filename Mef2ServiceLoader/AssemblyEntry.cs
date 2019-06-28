@@ -12,6 +12,8 @@ namespace Mef2ServiceLoader
             this.builder = builder;
             AssemblyPath = assemblyPath;
             ReflectionOnlyAssembly = builder.Build();
+            foreach(var baseAssembly in ReflectionOnlyAssembly.AssemblyDefinitions)
+                ;
         }
 
         public ReflectionMetadataResult ReflectionOnlyAssembly { get; private set; }

@@ -1,4 +1,6 @@
-﻿namespace FasterReflection
+﻿using System;
+
+namespace FasterReflection
 {
     public static class TypeDefinitionExtensions
     {
@@ -17,6 +19,13 @@
                 else
                     return t.BaseType.HasBaseType<Tbase>();
             }
+            return false;
+        }
+
+        public static bool ImplementsInterface<Tinterface>(this TypeDefinition t) where Tinterface : class
+        {
+            if (!typeof(Tinterface).IsInterface)
+                throw new ArgumentException($"Generic Type {nameof(Tinterface)} has to be an interface", nameof(Tinterface));
             return false;
         }
     }

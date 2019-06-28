@@ -2,7 +2,7 @@
 
 namespace TestAssembly
 {
-    public class TestPlugin : TestInterface
+    public class TestPlugin : ITestInterface
     {
         public string GetName()
         {

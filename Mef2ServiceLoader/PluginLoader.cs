@@ -2,11 +2,8 @@
 using GlobExpressions;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Composition.Hosting;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace Mef2ServiceLoader
 {
@@ -63,7 +60,7 @@ namespace Mef2ServiceLoader
                 {
                     return x.ReflectionOnlyAssembly.TypeDefinitions.Where(t =>
                     {
-                        return t.Interfaces.Any(i =>
+                        return t.AllInterfaces.Any(i =>
                         {
                             return i.FullName == typeof(T).FullName;
                         });

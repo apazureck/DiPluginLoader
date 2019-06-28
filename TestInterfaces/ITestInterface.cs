@@ -2,7 +2,7 @@
 
 namespace TestInterfaces
 {
-    public interface TestInterface
+    public interface ITestInterface
     {
         string GetName();
     }

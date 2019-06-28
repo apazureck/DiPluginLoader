@@ -2,7 +2,7 @@
 
 namespace TestAssembly
 {
-    public abstract class AbstractTestPlugin : TestInterface
+    public abstract class AbstractTestPlugin : ITestInterface
     {
         public string GetName()
         {

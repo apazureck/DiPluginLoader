@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -8,9 +9,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, IEnumerable<string> plugins) where T : class
         {
-            var loadPlugins = new Mef2ServiceLoader.PluginLoader(plugins);
-            var types = loadPlugins.GetExports<T>();
-            foreach(var type in types)
+            IEnumerable<System.Type> types = LoadTypes<T>(plugins);
+            foreach (var type in types)
             {
                 serviceCollection.AddTransient(type);
                 serviceCollection.AddTransient(p => (T)p.GetService(type));
@@ -18,12 +18,18 @@ namespace Microsoft.Extensions.DependencyInjection
             return serviceCollection;
         }
 
+        private static IEnumerable<System.Type> LoadTypes<T>(IEnumerable<string> plugins) where T : class
+        {
+            var loadPlugins = new Mef2ServiceLoader.PluginLoader(plugins);
+            var types = loadPlugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface));
+            return types;
+        }
+
         public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, string pluginsFolder) where T : class => AddSingletonPlugins<T>(serviceCollection, new string[] { pluginsFolder });
 
         public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, IEnumerable<string> plugins) where T : class
         {
-            var loadPlugins = new Mef2ServiceLoader.PluginLoader(plugins);
-            var types = loadPlugins.GetExports<T>();
+            IEnumerable<System.Type> types = LoadTypes<T>(plugins);
             foreach (var type in types)
             {
                 serviceCollection.AddSingleton(type);
@@ -36,8 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, IEnumerable<string> plugins) where T : class
         {
-            var loadPlugins = new Mef2ServiceLoader.PluginLoader(plugins);
-            var types = loadPlugins.GetExports<T>();
+            IEnumerable<System.Type> types = LoadTypes<T>(plugins);
             foreach (var type in types)
             {
                 serviceCollection.AddScoped(type);
