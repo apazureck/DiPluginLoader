@@ -5,9 +5,8 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, string pluginsFolder) where T : class => AddTransientPlugins<T>(serviceCollection, new string[] { pluginsFolder });
 
-        public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, IEnumerable<string> plugins) where T : class
+        public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, params string[] plugins) where T : class
         {
             IEnumerable<System.Type> types = LoadTypes<T>(plugins);
             foreach (var type in types)
@@ -25,9 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return types;
         }
 
-        public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, string pluginsFolder) where T : class => AddSingletonPlugins<T>(serviceCollection, new string[] { pluginsFolder });
-
-        public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, IEnumerable<string> plugins) where T : class
+        public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, params string[] plugins) where T : class
         {
             IEnumerable<System.Type> types = LoadTypes<T>(plugins);
             foreach (var type in types)

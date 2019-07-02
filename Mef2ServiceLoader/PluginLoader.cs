@@ -47,7 +47,14 @@ namespace Mef2ServiceLoader
             }
 
             builder.AddReferenceOnlyAssemblyByType<object>(); // adds the corlib
-            metaData = builder.Build();
+            try
+            {
+                metaData = builder.Build(true);
+            }
+            catch (AggregateException aex)
+            {
+                throw;
+            }
         }
 
         public List<Type> GetExports<T>() where T : class
