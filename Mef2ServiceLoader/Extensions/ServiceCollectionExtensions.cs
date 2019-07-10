@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -8,7 +12,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, params string[] plugins) where T : class
         {
-            IEnumerable<System.Type> types = LoadTypes<T>(plugins);
+            return AddTransientPlugins<T>(serviceCollection, NullLogger.Instance, plugins);
+        }
+
+        public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, ILogger logger, params string[] plugins) where T : class
+        {
+            IEnumerable<System.Type> types = LoadTypes<T>(plugins, logger);
             foreach (var type in types)
             {
                 serviceCollection.AddTransient(type);
@@ -17,16 +26,21 @@ namespace Microsoft.Extensions.DependencyInjection
             return serviceCollection;
         }
 
-        private static IEnumerable<System.Type> LoadTypes<T>(IEnumerable<string> plugins) where T : class
+        private static IEnumerable<System.Type> LoadTypes<T>(IEnumerable<string> plugins, ILogger logger) where T : class
         {
-            var loadPlugins = new Mef2ServiceLoader.PluginLoader(plugins);
-            var types = loadPlugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface));
+            IEnumerable<System.Type> types = new Mef2ServiceLoader.PluginLoader(logger, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), plugins).GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface));
+            logger.LogDebug("Found {tct} implementations for {typename}: {@types}", types.Count(), typeof(T).Name, types);
             return types;
         }
 
         public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, params string[] plugins) where T : class
         {
-            IEnumerable<System.Type> types = LoadTypes<T>(plugins);
+            return AddSingletonPlugins<T>(serviceCollection, NullLogger.Instance, plugins);
+        }
+
+        public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, ILogger logger, params string[] plugins) where T : class
+        {
+            IEnumerable<System.Type> types = LoadTypes<T>(plugins, logger);
             foreach (var type in types)
             {
                 serviceCollection.AddSingleton(type);
@@ -35,11 +49,14 @@ namespace Microsoft.Extensions.DependencyInjection
             return serviceCollection;
         }
 
-        public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, string pluginsFolder) where T : class => AddScopedPlugins<T>(serviceCollection, new string[] { pluginsFolder });
-
-        public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, IEnumerable<string> plugins) where T : class
+        public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, params string[] plugins) where T : class
         {
-            IEnumerable<System.Type> types = LoadTypes<T>(plugins);
+            return AddScopedPlugins<T>(serviceCollection, NullLogger.Instance, plugins);
+        }
+
+        public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, ILogger logger, params string[] plugins) where T : class
+        {
+            IEnumerable<System.Type> types = LoadTypes<T>(plugins, logger);
             foreach (var type in types)
             {
                 serviceCollection.AddScoped(type);

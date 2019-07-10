@@ -1,8 +1,11 @@
 ﻿using FasterReflection;
 using GlobExpressions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Composition.Hosting;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -13,7 +16,7 @@ namespace Mef2ServiceLoader
         List<CompositionHost> containers = new List<CompositionHost>();
         private ReflectionMetadataResult metaData;
 
-        public PluginLoader(string pattern) : this(new string[] { pattern })
+        public PluginLoader(string pattern, ILogger logger = null, string rootDir = ".") : this(logger ?? NullLogger.Instance, rootDir, new string[] { pattern })
         {
 
         }
@@ -23,14 +26,17 @@ namespace Mef2ServiceLoader
         /// </summary>
         /// <param name="root">root folder, default is relative to executing assemlby</param>
         /// <param name="patterns"></param>
-        public PluginLoader(IEnumerable<string> patterns = null)
+        public PluginLoader(ILogger logger = null, string rootDir = ".", IEnumerable<string> patterns = null)
         {
+            logger.LogDebug("Getting files from {relpath}", rootDir);
             var files = new List<string>();
             if (patterns == null)
-                files.AddRange(Glob.Files(".", "**/*.dll"));
+                files.AddRange(Glob.Files(rootDir, "**/*.dll"));
             else
                 foreach (var pattern in patterns)
-                    files.AddRange(Glob.Files(".", pattern));
+                    files.AddRange(Glob.Files(rootDir, pattern.TrimStart("./".ToCharArray())));
+
+            logger.LogDebug("Found {fct} files:\n {@files}", files.Count, files);
 
             var builder = new ReflectionMetadataBuilder();
 
@@ -38,7 +44,7 @@ namespace Mef2ServiceLoader
             {
                 try
                 {
-                    builder.AddAssembly(file);
+                    builder.AddAssembly(Path.Combine(rootDir, file));
                 }
                 catch (Exception)
                 {
