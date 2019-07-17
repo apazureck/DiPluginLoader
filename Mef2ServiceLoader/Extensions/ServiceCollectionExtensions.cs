@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Mef2ServiceLoader;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Generic;
 using System.IO;
@@ -52,6 +53,36 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, params string[] plugins) where T : class
         {
             return AddScopedPlugins<T>(serviceCollection, NullLogger.Instance, plugins);
+        }
+
+        public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins) where T : class
+        {
+            foreach (System.Type type in plugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface)))
+            {
+                serviceCollection.AddScoped(type);
+                serviceCollection.AddScoped(p => (T)p.GetService(type));
+            }
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins) where T : class
+        {
+            foreach (System.Type type in plugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface)))
+            {
+                serviceCollection.AddTransient(type);
+                serviceCollection.AddTransient(p => (T)p.GetService(type));
+            }
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins) where T : class
+        {
+            foreach (System.Type type in plugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface)))
+            {
+                serviceCollection.AddSingleton(type);
+                serviceCollection.AddSingleton(p => (T)p.GetService(type));
+            }
+            return serviceCollection;
         }
 
         public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, ILogger logger, params string[] plugins) where T : class

@@ -61,6 +61,10 @@ namespace Mef2ServiceLoader
             {
                 throw;
             }
+            catch(Exception ex)
+            {
+                
+            }
         }
 
         public List<Type> GetExports<T>() where T : class
