@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GenericAssembly\GenericAssembly.csproj" />
     <ProjectReference Include="..\Mef2ServiceLoader\Mef2ServiceLoader.csproj" />
     <ProjectReference Include="..\TestAssembly2\TestAssembly2.csproj" />
     <ProjectReference Include="..\TestAssembly\TestAssembly.csproj" />

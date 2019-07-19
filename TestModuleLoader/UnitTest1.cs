@@ -1,3 +1,4 @@
+using GenericAssembly;
 using Microsoft.Extensions.DependencyInjection;
 using TestAssembly;
 using TestAssembly2;
@@ -34,7 +35,7 @@ namespace TestModuleLoader
         public void TestLoadingFromSeperateFolders()
         {
             IServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddTransientPlugins<TestInterfaces.ITestInterface>("TestAssemblies/TestAssembly1/**/*.dll", );
+            serviceCollection.AddTransientPlugins<TestInterfaces.ITestInterface>("TestAssemblies/TestAssembly1/**/*.dll", "TestAssemblies/TestAssembly2/**/*.dll");
             System.Collections.Generic.IEnumerable<TestInterfaces.ITestInterface> services = serviceCollection.BuildServiceProvider().GetServices<TestInterfaces.ITestInterface>();
 
             AssertCollection.CollectionHasAny(services, output,
@@ -42,6 +43,21 @@ namespace TestModuleLoader
                 t => Assert.Equal(typeof(TestPlugin), t.GetType()),
                 t => Assert.Equal(typeof(AnotherTestPlugin), t.GetType()),
                 t => Assert.Equal(typeof(TestPlugin2), t.GetType()));
+        }
+
+        [Fact]
+        public void TestGenericInheritance()
+        {
+            IServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.AddTransientPlugins<TestInterfaces.ITestInterface>("TestAssemblies/GenericTestAssembly/**/*.dll");
+            System.Collections.Generic.IEnumerable<TestInterfaces.ITestInterface> services = serviceCollection.BuildServiceProvider().GetServices<TestInterfaces.ITestInterface>();
+
+            AssertCollection.CollectionHasAny(services, output,
+                t => Assert.Equal(typeof(GenericClass), t.GetType()),
+                t => Assert.Equal(typeof(ControlClass), t.GetType())
+                );
+
+
         }
     }
 }
