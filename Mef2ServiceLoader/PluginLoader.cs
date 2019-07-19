@@ -93,5 +93,23 @@ namespace Mef2ServiceLoader
             }
             return ret;
         }
+
+        private List<Type> allTypes;
+
+        public List<Type> GetExports()
+        {
+            if(allTypes == null)
+            {
+                allTypes = new List<Type>();
+                foreach (AssemblyDefinition assembly in metaData.AssemblyDefinitions)
+                {
+
+                    string location = assembly.Location;
+                    allTypes.AddRange(Assembly.LoadFrom(location).GetTypes());
+                }
+            }
+                
+            return allTypes;
+        }
     }
 }
