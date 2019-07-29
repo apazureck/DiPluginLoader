@@ -8,6 +8,7 @@ using System.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Mef2ServiceLoader
 {
@@ -34,7 +35,7 @@ namespace Mef2ServiceLoader
                 files.AddRange(Glob.Files(rootDir, "**/*.dll"));
             else
                 foreach (var pattern in patterns)
-                    files.AddRange(Glob.Files(rootDir, pattern.TrimStart("./".ToCharArray())));
+                    files.AddRange(Glob.Files(rootDir, Regex.Replace(pattern, @"^\./", "")));
 
             logger.LogDebug("Found {fct} files:\n {@files}", files.Count, files);
 

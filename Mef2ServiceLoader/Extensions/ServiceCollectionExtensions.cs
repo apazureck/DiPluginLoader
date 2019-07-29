@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static IEnumerable<System.Type> LoadTypes<T>(IEnumerable<string> plugins, ILogger logger) where T : class
         {
-            IEnumerable<System.Type> types = new Mef2ServiceLoader.PluginLoader(logger, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), plugins).GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface));
+            IEnumerable<System.Type> types = new Mef2ServiceLoader.PluginLoader(logger, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), plugins).GetExports().Where(t => typeof(T).IsAssignableFrom(t) && !(t.IsAbstract || t.IsInterface));
             logger.LogDebug("Found {tct} implementations for {typename}: {@types}", types.Count(), typeof(T).Name, types);
             return types;
         }
@@ -57,7 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins) where T : class
         {
-            foreach (System.Type type in plugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface)))
+            foreach (System.Type type in plugins.GetExports().Where(t => typeof(T).IsAssignableFrom(t) && !(t.IsAbstract || t.IsInterface)))
             {
                 serviceCollection.AddScoped(type);
                 serviceCollection.AddScoped(p => (T)p.GetService(type));
@@ -65,20 +65,28 @@ namespace Microsoft.Extensions.DependencyInjection
             return serviceCollection;
         }
 
-        public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins) where T : class
+        public static IServiceCollection AddTransientPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins, ILogger logger = null) where T : class
         {
-            foreach (System.Type type in plugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface)))
+            logger = logger ?? NullLogger.Instance;
+            var ftypes = plugins.GetExports().Where(t => typeof(T).IsAssignableFrom(t) && !(t.IsAbstract || t.IsInterface));
+            logger.LogDebug("Found {ct} implementations for {type}", ftypes.Count(), typeof(T).Name);
+            foreach (System.Type type in ftypes)
             {
+                logger.LogDebug("Adding {type}", type.Name);
                 serviceCollection.AddTransient(type);
                 serviceCollection.AddTransient(p => (T)p.GetService(type));
             }
             return serviceCollection;
         }
 
-        public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins) where T : class
+        public static IServiceCollection AddSingletonPlugins<T>(this IServiceCollection serviceCollection, PluginLoader plugins, ILogger logger = null) where T : class
         {
-            foreach (System.Type type in plugins.GetExports<T>().Where(t => !(t.IsAbstract || t.IsInterface)))
+            logger = logger ?? NullLogger.Instance;
+            var ftypes = plugins.GetExports().Where(t => typeof(T).IsAssignableFrom(t) && !(t.IsAbstract || t.IsInterface));
+            logger.LogDebug("Found {ct} implementations for {type}", ftypes.Count(), typeof(T).Name);
+            foreach (System.Type type in ftypes)
             {
+                logger.LogDebug("Adding {type}", type.Name);
                 serviceCollection.AddSingleton(type);
                 serviceCollection.AddSingleton(p => (T)p.GetService(type));
             }
@@ -87,9 +95,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddScopedPlugins<T>(this IServiceCollection serviceCollection, ILogger logger, params string[] plugins) where T : class
         {
+            logger = logger ?? NullLogger.Instance;
             IEnumerable<System.Type> types = LoadTypes<T>(plugins, logger);
+            logger.LogDebug("Found {ct} implementations for {type}", types.Count(), typeof(T).Name);
             foreach (var type in types)
             {
+                logger.LogDebug("Adding {type}", type.Name);
                 serviceCollection.AddScoped(type);
                 serviceCollection.AddScoped(p => (T)p.GetService(type));
             }
